@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.cn21</groupId>
     <artifactId>Time-NLP</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <name>Time-NLP</name>
 
     <build>

@@ -4,14 +4,7 @@ import com.time.util.DateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
+import java.io.*;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -204,28 +197,33 @@ public class TimeNormalizer implements Serializable {
         Matcher match;
         int startline = -1, endline = -1;
 
-        String[] temp = new String[99];
+        String[] temp = new String[9999];
         int rpointer = 0;// 计数器，记录当前识别到哪一个字符串了
         TimeUnit[] Time_Result = null;
 
-        match = patterns.matcher(tar);
+        match = RegularExpressionUtils.createMatcherWithTimeout(tar, patterns, 10000);
+
         boolean startmark = true;
-        while (match.find()) {
-            startline = match.start();
-            if (endline == startline) // 假如下一个识别到的时间字段和上一个是相连的 @author kexm
-            {
-                rpointer--;
-                temp[rpointer] = temp[rpointer] + match.group();// 则把下一个识别到的时间字段加到上一个时间字段去
-            } else {
-                if (!startmark) {
+        try {
+            while (match.find()) {
+                startline = match.start();
+                if (endline == startline) // 假如下一个识别到的时间字段和上一个是相连的 @author kexm
+                {
                     rpointer--;
-                    rpointer++;
+                    temp[rpointer] = temp[rpointer] + match.group();// 则把下一个识别到的时间字段加到上一个时间字段去
+                } else {
+                    if (!startmark) {
+                        rpointer--;
+                        rpointer++;
+                    }
+                    startmark = false;
+                    temp[rpointer] = match.group();// 记录当前识别到的时间字段，并把startmark开关关闭。这个开关貌似没用？
                 }
-                startmark = false;
-                temp[rpointer] = match.group();// 记录当前识别到的时间字段，并把startmark开关关闭。这个开关貌似没用？
+                endline = match.end();
+                rpointer++;
             }
-            endline = match.end();
-            rpointer++;
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         if (rpointer > 0) {
             rpointer--;
